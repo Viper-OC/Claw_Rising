@@ -1,3 +1,11 @@
 # Only ignore common junk — not .gitignore itself
 *.tmp
 node_modules/
+__pycache__/
+*.pyc
+.env
+.venv/
+venv/
+*.db
+.ngrok-url
+

@@ -57,10 +57,30 @@ Consider setting up a cron job or OpenClaw heartbeat to automate regular backups
 - **Size**: Backups are compressed; typical instance size is 1–5 MB.
 - **Versioning**: Each backup is a new tarball; previous versions remain in git history.
 
+## Rebuild Package
+
+The `rebuild/` directory contains a complete Dockerised recreation of the WSL2
+production environment — Ubuntu 24.04, Node.js v22, Python 3.12, OpenClaw
+gateway, and the Gallery stack — ready to deploy in staging or production mode.
+
+```bash
+cd rebuild
+cp .env.example .env   # fill in your API keys
+docker compose up staging   # development with hot-reload
+docker compose up -d prod   # production deployment
+```
+
+See `rebuild/README.md` for full details.
+
+---
+
 ## Why "Claw_Rising"?
 
-The name reflects the resilience of your OpenClaw instance – it can rise again from backup, even if the original falls.
+The name reflects the resilience of your OpenClaw instance – it can rise again
+from backup, even if the original falls.
 
 ---
 
 *This repository was initialized and first backup created by OpenClaw on 2026-03-22.*
+
+---

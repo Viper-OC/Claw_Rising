@@ -1,0 +1,81 @@
+# ─── Claw_Rising Rebuild — docker-compose.yml ──────────────────────────────
+# Dual-lane deployment: staging (hot-reload) + prod (production-ready).
+#
+# Usage:
+#   docker compose up staging    # development
+#   docker compose up prod       # production
+#   docker compose up -d prod    # detached
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── Staging (Development) ────────────────────────────────────────────────
+  staging:
+    build:
+      context: ..
+      dockerfile: rebuild/Dockerfile
+      target: staging
+    container_name: claw-rising-staging
+    restart: unless-stopped
+    ports:
+      - "19000:19000"   # OpenClaw gateway
+      - "3000:3000"     # Gallery frontend
+      - "8001:8001"     # Gallery backend
+    env_file:
+      - .env
+    environment:
+      - MODE=staging
+      - OPENCLAW_GATEWAY_PORT=19000
+    volumes:
+      # Bind-mount the workspace for live editing
+      - ../:/home/samuel
+      # Persistent SQLite data
+      - gallery-data:/home/samuel/projects/gallery/data
+      # OpenClaw config (so gateway state persists)
+      - openclaw-config:/home/samuel/.openclaw
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8001/api/predictions?limit=1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    networks:
+      - claw-net
+
+  # ── Production ───────────────────────────────────────────────────────────
+  prod:
+    build:
+      context: ..
+      dockerfile: rebuild/Dockerfile
+      target: prod
+    container_name: claw-rising-prod
+    restart: always
+    ports:
+      - "19000:19000"   # OpenClaw gateway
+      - "3000:3000"     # Gallery frontend
+      - "8001:8001"     # Gallery backend
+    env_file:
+      - .env
+    environment:
+      - MODE=prod
+      - OPENCLAW_GATEWAY_PORT=19000
+    volumes:
+      # Only persistent data — no source code bind-mount
+      - gallery-data:/home/samuel/projects/gallery/data
+      - openclaw-config:/home/samuel/.openclaw
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8001/api/predictions?limit=1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    networks:
+      - claw-net
+
+volumes:
+  gallery-data:
+  openclaw-config:
+
+networks:
+  claw-net:
+    driver: bridge
